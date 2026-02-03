@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Resumen de Compra | Walmart</title>
+    <style>
+        body { font-family: 'Open Sans', Arial, sans-serif; margin: 0; background-color: #f0f2f5; color: #444; }
+        .navbar { background-color: #0071dc; padding: 10px 50px; color: white; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 24px; font-weight: bold; }
+        .logo span { color: #ffc220; font-size: 30px; margin-left: 2px; }
+        .cart-section { display: flex; flex-direction: column; align-items: center; min-width: 100px; }
+        .cart-icon-wrapper { position: relative; }
+        .cart-badge { position: absolute; top: -5px; right: -8px; background-color: #ffc220; color: #000; font-size: 11px; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1.5px solid #0071dc; }
+        .header-price { font-size: 14px; font-weight: bold; margin-top: 2px; }
+        
+        .container { display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+        .card { background: white; width: 100%; max-width: 480px; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        
+        .delivery-header { font-weight: bold; font-size: 16px; color: #000; margin-bottom: 8px; }
+        .address-detail { font-size: 14px; color: #666; line-height: 1.6; }
+        .zone-label { color: #333; font-weight: 600; margin-top: 4px; display: block; }
+
+        .expand-btn { background: none; border: none; color: #0071dc; cursor: pointer; text-decoration: underline; font-size: 14px; padding: 0; margin-left: 8px; }
+        #detalle-container { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        #detalle-container.open { max-height: 1000px; margin-top: 15px; border-top: 1px solid #f0f0f0; }
+
+        .row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; }
+        .total-row { font-size: 20px; font-weight: bold; border-top: 1px solid #e0e0e0; margin-top: 20px; padding-top: 20px; }
+        
+        .shipping-promo { color: #2e7d32; font-size: 12px; font-weight: bold; margin-top: -8px; margin-bottom: 12px; text-align: right; display: none; }
+        
+        .blue-bold-btn { 
+            width: 100%; border: 1px dashed #0071dc; cursor: pointer; text-align: left;
+            color: #0071dc; font-weight: bold; background-color: #e7f3ff; padding: 15px; 
+            border-radius: 5px; margin-top: 15px; display: flex; justify-content: space-between; 
+            align-items: center; transition: background 0.2s; font-family: inherit;
+        }
+        .blue-bold-btn:hover { background-color: #d0e7ff; }
+        .discount-text { font-size: 13px; color: #0071dc; display: block; margin-top: 2px; font-weight: normal; }
+        
+        .promo-glosa { color: #ce1126; font-size: 11px; font-weight: bold; display: block; }
+        .miclub-info { display: flex; align-items: center; background-color: #f2f7ec; border: 1px solid #d4e5c3; padding: 12px; border-radius: 5px; margin-top: 15px; font-size: 14px; color: #2e7d32; }
+        .btn-qty { border: 1px solid #0071dc; background: white; color: #0071dc; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-weight: bold; line-height: 1; }
+
+        /* --- ESTILOS DE LA BOLETA ACTUALIZADOS --- */
+        #modalBoleta {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;
+        }
+        .ticket {
+            background: white; width: 340px; padding: 25px; border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace; color: #000; font-size: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .ticket-header { text-align: center; margin-bottom: 10px; text-transform: uppercase; }
+        .ticket-divider { border-top: 1px dashed #000; margin: 10px 0; }
+        .ticket-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        .ticket-footer { text-align: center; margin-top: 15px; font-size: 10px; }
+        .miclub-box { border: 1px solid #000; padding: 8px; margin-top: 10px; text-align: center; }
+        .close-modal { background: #333; color: white; border: none; width: 100%; padding: 12px; margin-top: 15px; cursor: pointer; font-family: 'Open Sans', sans-serif; font-weight: bold; }
+        .bold { font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="logo">Walmart<span>*</span></div>
+        <div class="cart-section">
+            <div class="cart-icon-wrapper">🛒<div class="cart-badge" id="h-badge">0</div></div>
+            <div class="header-price" id="h-total">$0</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card" th:if="${direccion != null}">
+            <div class="delivery-header">Retiro Pickup o Despacho a Domicilio</div>
+            <div class="address-detail">
+                <div th:text="${direccion.street}" id="val-street">Av. El Salto 123</div>
+                <div th:text="${direccion.city}" id="val-city">Recoleta</div>
+                <span class="zone-label">Zone ID: <span th:text="${direccion.zoneId}" id="val-zone">STGO-Z1</span></span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Resumen de pedido</h2>
+            
+            <div class="row">
+                <span>Productos (<span id="m-qty">0</span>) <button class="expand-btn" onclick="toggleDetails()" id="btn-toggle">Ver detalle</button></span>
+                <span id="subtotal-txt">$0</span>
+            </div>
+
+            <div id="detalle-container">
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                    <tbody id="lista-items"></tbody>
+                </table>
+            </div>
+
+            <div class="row" style="color: #2e7d32; font-weight: bold; margin-top: 15px;">
+                <span>Descuento Promociones</span>
+                <span id="promo-desc-txt">-$0</span>
+            </div>
+
+            <div class="row">
+                <span>Costo de envío</span>
+                <span id="envio-txt">$0</span>
+            </div>
+            <div id="shipping-msg" class="shipping-promo">Tu envío es sin costo por compras sobre $20.000</div>
+
+            <div class="row total-row">
+                <span>Total estimado</span>
+                <span id="total-txt">$0</span>
+            </div>
+
+            <button class="blue-bold-btn" onclick="mostrarBoleta()">
+                <div>
+                    Pagando con <span id="val-metodo" th:text="${metodo}">Tarjeta Lider BCI</span>
+                    <span class="discount-text">30% de dcto. aplicado al total</span>
+                </div>
+                <span id="pago-final-txt">$0</span>
+            </button>
+
+            <div class="miclub-info">
+                <div style="background:#2e7d32; color:white; padding:2px 6px; border-radius:4px; margin-right:10px; font-weight:bold;">Mi Club</div>
+                <span>Recibirías <strong id="puntos-txt">0</strong> Pesos Mi Club</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalBoleta">
+        <div class="ticket">
+            <div class="ticket-header">
+                <strong style="font-size: 14px;">Walmart Chile S.A.</strong><br>
+                RUT: 76.134.941-4<br>
+                AV. EL SALTO 123, RECOLETA<br>
+                <span id="bol-fecha" style="font-size: 10px;"></span>
+            </div>
+            
+            <div class="ticket-divider"></div>
+            <div id="bol-items-list"></div>
+            <div class="ticket-divider"></div>
+            
+            <div class="ticket-row">
+                <span>DCTO. PROMOS</span>
+                <span id="bol-desc-promos"></span>
+            </div>
+            <div class="ticket-row">
+                <span>COSTO ENVIO</span>
+                <span id="bol-envio"></span>
+            </div>
+            <div class="ticket-row bold">
+                <span>TOTAL ESTIMADO</span>
+                <span id="bol-total-est"></span>
+            </div>
+            
+            <div class="ticket-divider"></div>
+            
+            <div class="ticket-row" style="font-size: 11px; color: #444;">
+                <span id="bol-metodo-label"></span>
+                <span id="bol-desc-metodo"></span>
+            </div>
+
+            <div class="ticket-row bold" style="font-size:15px; margin-top: 10px;">
+                <span>TOTAL PAGADO</span>
+                <span id="bol-total-final"></span>
+            </div>
+
+            <div class="miclub-box">
+                ** MI CLUB **<br>
+                PESOS GANADOS COMPRA<br>
+                <strong id="bol-puntos-ganados" style="font-size:16px;">$0</strong>
+            </div>
+
+            <div class="ticket-footer">
+                ID CARRITO: <span id="display-cart-id"></span><br>
+                ¡GRACIAS POR SU COMPRA!
+            </div>
+
+            <button class="close-modal" onclick="cerrarBoleta()">VOLVER AL CARRITO</button>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const cartIdDesdeJava = /*[[${cartId}]]*/ "ID-GENERADO-UI"; 
+        let items = /*[[${items}]]*/ [];
+        const percDescMetodo = 0.30; 
+        const costoEnvioFijo = 1000; 
+
+        document.getElementById('display-cart-id').innerText = cartIdDesdeJava;
+        const fmt = n => '$' + Math.round(n).toLocaleString('es-CL');
+        
+        const parsePrice = (id) => {
+            const val = document.getElementById(id).innerText;
+            return parseInt(val.replace(/[^0-9]/g, '')) || 0;
+        };
+
+        function toggleDetails() {
+            const container = document.getElementById('detalle-container');
+            container.classList.toggle('open');
+            document.getElementById('btn-toggle').innerText = container.classList.contains('open') ? 'Ocultar detalle' : 'Ver detalle';
+        }
+
+        async function update(idx, delta) {
+            items[idx].quantity = Math.max(1, items[idx].quantity + delta);
+            try {
+                const r = await fetch(`/validar-promo?sku=${items[idx].sku}&qty=${items[idx].quantity}&price=${items[idx].price}`);
+                const p = await r.json();
+                items[idx].ahorro = p.aplica ? p.descuentoMonto : 0;
+                items[idx].glosa = p.aplica ? p.mensaje : null;
+            } catch (e) { console.error(e); }
+            render();
+        }
+
+        function render() {
+            let bruto = 0, ahorroPromos = 0, q = 0;
+            const tbody = document.getElementById('lista-items');
+            tbody.innerHTML = '';
+
+            items.forEach((item, i) => {
+                const totalFila = (item.price * item.quantity);
+                bruto += totalFila;
+                ahorroPromos += (item.ahorro || 0);
+                q += item.quantity;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="padding: 10px 0;"><strong>${item.name}</strong><br><span class="promo-glosa">${item.glosa || ''}</span></td>
+                        <td align="center">
+                            <button class="btn-qty" onclick="update(${i},-1)">-</button>
+                            <span style="margin:0 6px">${item.quantity}</span>
+                            <button class="btn-qty" onclick="update(${i},1)">+</button>
+                        </td>
+                        <td align="right" style="font-weight: 500;">${fmt(totalFila - (item.ahorro || 0))}</td>
+                    </tr>`;
+            });
+
+            const subtotalNeto = bruto - ahorroPromos;
+            const envio = subtotalNeto >= 20000 ? 0 : costoEnvioFijo;
+            const totalEst = subtotalNeto + envio;
+            const descMetodo = Math.round(totalEst * percDescMetodo);
+            const totalFinal = totalEst - descMetodo;
+
+            document.getElementById('m-qty').innerText = q;
+            document.getElementById('h-badge').innerText = q;
+            document.getElementById('subtotal-txt').innerText = fmt(bruto);
+            document.getElementById('promo-desc-txt').innerText = '-' + fmt(ahorroPromos);
+            document.getElementById('envio-txt').innerText = envio === 0 ? "Sin costo" : fmt(envio);
+            document.getElementById('shipping-msg').style.display = envio === 0 ? 'block' : 'none';
+            document.getElementById('total-txt').innerText = fmt(totalEst);
+            document.getElementById('pago-final-txt').innerText = fmt(totalFinal);
+            document.getElementById('h-total').innerText = fmt(totalFinal);
+            document.getElementById('puntos-txt').innerText = Math.floor(totalFinal * 0.05).toLocaleString('es-CL');
+        }
+
+        async function mostrarBoleta() {
+            // Captura de datos actuales
+            const totalEstimado = parsePrice('total-txt');
+            const totalFinalPagar = parsePrice('pago-final-txt');
+            const ahorroMedioPago = totalEstimado - totalFinalPagar;
+            const metodoNombre = document.getElementById('val-metodo').innerText;
+
+            const payload = {
+                cartId: cartIdDesdeJava, 
+                paymentMethod: metodoNombre,
+                items: items.map(item => ({
+                    sku: item.sku,
+                    name: item.name,
+                    quantity: item.quantity,
+                    price: item.price,
+                    ahorroIndividual: item.ahorro || 0
+                })),
+                totalEstimado: totalEstimado,
+                costoEnvio: parsePrice('envio-txt'),
+                descuentoPromociones: parsePrice('promo-desc-txt'), 
+                totalConDescuento: totalFinalPagar,
+                porcentajeDctoMedioPago: (percDescMetodo * 100) + "%"
+            };
+
+            // Rellenar Boleta Visual
+            document.getElementById('bol-fecha').innerText = new Date().toLocaleString('es-CL');
+            document.getElementById('bol-desc-promos').innerText = document.getElementById('promo-desc-txt').innerText;
+            document.getElementById('bol-envio').innerText = document.getElementById('envio-txt').innerText;
+            document.getElementById('bol-total-est').innerText = fmt(totalEstimado);
+            
+            // Glosa de descuento medio de pago
+            document.getElementById('bol-metodo-label').innerText = "DCTO. " + (percDescMetodo * 100) + "% " + metodoNombre;
+            document.getElementById('bol-desc-metodo').innerText = "-" + fmt(ahorroMedioPago);
+            
+            document.getElementById('bol-total-final').innerText = fmt(totalFinalPagar);
+            document.getElementById('bol-puntos-ganados').innerText = fmt(Math.floor(totalFinalPagar * 0.05));
+            
+            const itemsList = document.getElementById('bol-items-list');
+            itemsList.innerHTML = '';
+            items.forEach(it => {
+                itemsList.innerHTML += `<div class="ticket-row"><span>${it.name.substring(0,20)} x${it.quantity}</span><span>${fmt(it.price * it.quantity)}</span></div>`;
+            });
+
+            document.getElementById('modalBoleta').style.display = 'flex';
+
+            // Reporte al servidor y Log
+            try {
+                const response = await fetch('/api/boleta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const dataServicio = await response.json();
+                console.log(">>> RESPUESTA SERVICIO:", dataServicio);
+            } catch (err) {
+                console.error("Error al reportar:", err);
+            }
+        }
+
+        function cerrarBoleta() {
+            document.getElementById('modalBoleta').style.display = 'none';
+        }
+
+        render();
+    </script>
+</body>
+</html>
