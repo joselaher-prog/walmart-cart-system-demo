@@ -7,12 +7,12 @@ import org.springframework.stereotype.Service;
 public class ShippingService {
 
     public double calcularEnvio(double subtotal, ShippingAddress address) {
-        // Validación de seguridad: si no hay dirección, no podemos calcular zona
+        // Validación si direccion viene vacia no aplica cargo a envio
         if (address == null || address.getZoneId() == null) {
             return 0.0;
         }
         
-        // Lógica de envío por zona
+        // Lógica de cargo por envío por zona
         switch (address.getZoneId().toLowerCase()) {
             case "zone-1":
                 return 1000.0;

@@ -1,6 +1,6 @@
 package com.walmart.miservidor.controller;
 
-import com.walmart.miservidor.model.*; // Importamos los nuevos archivos de la carpeta model
+import com.walmart.miservidor.model.*; 
 import com.walmart.miservidor.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

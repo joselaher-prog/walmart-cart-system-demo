@@ -1,10 +1,7 @@
 package com.walmart.miservidor.controller;
 
-// Estos son los imports que faltaban y causaban los errores de "cannot be resolved"
 import com.walmart.miservidor.model.BoletaResponse;
-
 import tools.jackson.databind.ObjectMapper;
-
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,7 +33,6 @@ public BoletaResponse generarBoleta(@RequestBody BoletaResponse entrada) {
 
     try {
         ObjectMapper mapper = new ObjectMapper();
-        // Convierte el objeto a un String JSON con formato "bonito"
         String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(entrada);
         
         System.out.println("========================================");
@@ -48,6 +44,6 @@ public BoletaResponse generarBoleta(@RequestBody BoletaResponse entrada) {
         System.out.println("Error al imprimir el JSON: " + e.getMessage());
     }
 
-    return salida; // Retorna la respuesta oficial al cliente
+    return salida; // Retorna la respuesta en un json con las modificaciones realizadas en pantalla
 }
 }

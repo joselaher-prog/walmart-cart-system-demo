@@ -8,8 +8,7 @@ import org.springframework.stereotype.Service;
 public class PromoService {
 
     /**
-     * Calcula el ahorro para un item individual.
-     * Se usa para el cálculo del total en el Controlador.
+     * Calcula el descuento por item
      */
     public double obtenerAhorroDesdeItem(Item item) {
         if (item == null || item.getSku() == null) return 0.0;
@@ -38,7 +37,7 @@ public class PromoService {
     }
 
     /**
-     * Procesa la promoción para la validación dinámica (Frontend).
+     * Procesa los sku para validar cual de ellos tiene alguna promoción
      */
     public PromoResponse procesarPromocion(String sku, int qty, double price) {
         PromoResponse res = new PromoResponse();
